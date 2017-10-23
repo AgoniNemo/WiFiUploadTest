@@ -7,6 +7,8 @@
 //
 
 #import "ViewController.h"
+#import "SGWiFiUploadManager.h"
+#import <JavaScriptCore/JavaScriptCore.h>
 
 @interface ViewController ()
 
@@ -16,7 +18,33 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self setupServer];
+    
+}
+
+- (void)setupServer {
+    SGWiFiUploadManager *mgr = [SGWiFiUploadManager sharedManager];
+    BOOL success = [mgr startHTTPServerAtPort:52982];
+    if (success) {
+        [mgr setFileUploadStartCallback:^(NSString *fileName, NSString *savePath) {
+            NSLog(@"File %@ Upload Start", fileName);
+        }];
+        [mgr setFileUploadProgressCallback:^(NSString *fileName, NSString *savePath, CGFloat progress) {
+            NSLog(@"File %@ on progress %f", fileName, progress);
+        }];
+        [mgr setFileUploadFinishCallback:^(NSString *fileName, NSString *savePath) {
+            NSLog(@"File Upload Finish %@ at %@", fileName, savePath);
+        }];
+    }
+    [mgr showWiFiPageFrontViewController:self dismiss:^{
+        [mgr stopHTTPServer];
+    }];
 }
 
 
